@@ -44,6 +44,8 @@ def create_app():
     app.register_blueprint(upload_bp)
     from app.views.status_views import bp as status_bp
     app.register_blueprint(status_bp)
+    from app.webhook import bp as webhook_bp
+    app.register_blueprint(webhook_bp)
 
     return app
 

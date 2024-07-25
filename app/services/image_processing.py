@@ -2,6 +2,7 @@ from app import celery,db
 from app.models import Product, ProcessingRequest
 from app.services.async_worker import process_images
 import logging
+import requests
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -26,3 +27,16 @@ def process_images_task(request_id):
             product.output_image_urls = ','.join(output_urls)
         request.status = 'Completed'
         db.session.commit()
+
+    # Trigger webhook
+    webhook_url = "http://localhost:5000/webhook"
+    data = {
+        'request_id': request_id,
+        'status': 'Completed'
+    }
+    try:
+        response = requests.post(webhook_url, json=data)
+        response.raise_for_status()
+        logger.info(f"Webhook triggered successfully for request_id: {request_id}")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Failed to trigger webhook for request_id: {request_id}: {e}")    
